@@ -1,6 +1,6 @@
 <?php
 
-$plugin_conifg = array(
+$plugin_config = array(
 	'name'    => "Site Administration",
 	'version' => "0.1",
 	'short'   => "admin",

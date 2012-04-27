@@ -4,6 +4,8 @@
 // Default error output to FALSE. Override before this file is included.
 if (!defined('OUTPUT_DEBUG_ERRORS') )
 	define('OUTPUT_DEBUG_ERRORS', FALSE);
+if (!defined('OUTPUT_DEBUG_MESSAGES') )
+	define('OUTPUT_DEBUG_MESSAGES', FALSE);
 
 error_reporting(E_ALL | E_STRICT);
 
@@ -11,12 +13,18 @@ error_reporting(E_ALL | E_STRICT);
 // Pretty print
 function pr($i)
 {
-	if (OUTPUT_DEBUG_ERRORS)
+	if (OUTPUT_DEBUG_MESSAGES)
 	{
 		echo "<pre>";
 		print_r($i);
 		echo "</pre>";
 	}
+}
+
+function debug_out($i)
+{
+	if (OUTPUT_DEBUG_MESSAGES)
+		echo $i . "<br />";
 }
 
 

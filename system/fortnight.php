@@ -9,7 +9,7 @@ require_once "model.php";
 require_once "plugin.php";
 require_once "helper.php";
 
-class Fortnight
+class Fortnight extends FN_Base
 {
 	function __construct($global_config)
 	{
@@ -54,6 +54,7 @@ class Fortnight
 				if (!isset($input['vars'][$name]) )
 					$input['vars'][$name] = $value;
 			}
+			$request = substr($request, 0, strrpos(substr($request, 0, strpos($request, ":") ), "/") );
 		}
 		// Parse $_POST
 		if (isset($_POST) && !empty($_POST) )
@@ -67,10 +68,17 @@ class Fortnight
 			}
 			unset($_POST);
 		}
+			
+		// Start up Plugin Manager
+		$this->plugin_manager = new FN_Plugin_Manager($this->config['global']);
+			
+		// Load admin plugins
+		$admin_plugins = $this->plugin_manager->get_plugins('system');
+		pr($admin_plugins);
 		
-		// Trim off URI variables, leaving just the path for routing
-		if (strpos($request, ":") !== FALSE)
-			$request = substr($request, 0, strrpos(substr($request, 0, strpos($request, ":") ), "/") );
+		// Load registered routes
+		
+		// Match request to route
 			
 		include "config/routes.php";
 		
@@ -90,22 +98,13 @@ class Fortnight
 					$route['path'] .= substr($route['controller'], 0, $o);
 					$route['controller'] = substr($route['controller'], $o + 1);
 				}
-				pr($route);
 			}
 		}
-		
-		pr($input);
-		
-		
-		// Load admin plugins
-		
-		// Load registered routes
-		
-		// Match request to route
 		
 		// Load request controller
 		
 		// Execute request
+		debug_out("request executed");
 	}
 }
 
