@@ -7,7 +7,7 @@ $plugin_config = array(
 	'type'  => "helper",
 	
 	'requests' => array(
-		'member_var' => "Db"
+		'member_var' => array("Db" => "db")
 	)
 );
 

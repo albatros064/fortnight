@@ -74,13 +74,50 @@ class Fortnight extends FN_Base
 			
 		// Load admin plugins
 		$admin_plugins = $this->plugin_manager->get_plugins('system');
-		pr($admin_plugins);
 		
-		// Load registered routes
+		foreach ($admin_plugins as $admin_plugin)
+			$this->plugin_manager->load_plugin($admin_plugin);
+			
+		#pr($this->plugin_manager->loaded);
+		#pr($this->plugin_manager->assignments);
+		
+		$uri_prefix = '';
+		$path_prefix = '';
+		
+		// Match request to plugin-registered paths
+		$plugin_paths = $this->plugin_manager->get_web_paths();
+		foreach ($plugin_paths as $path => $details)
+		{
+			$path = "/" . trim($path, "/");
+			$pos = strpos($request, $path);
+			if ($pos !== FALSE && $pos == 0)
+			{
+				if (strlen($path) > $uri_prefix)
+				{
+					$uri_prefix = $path;
+					$path_prefix = $details['path'];
+				}
+			}
+		}
+		
+		if (empty($uri_prefix) )
+		{
+			// Load registered routes
+			
+		}
+		
+		debug_out($uri_prefix);
+		debug_out($path_prefix);
+		
+		if (!empty($uri_prefix) )
+			$request = "/" . trim(str_replace($uri_prefix, "", $request), "/");
+			
+		pr($request);
 		
 		// Match request to route
-			
 		include "config/routes.php";
+		
+		$possible_routes = array();
 		
 		foreach ($routes_config as $pattern => $route)
 		{
@@ -92,16 +129,19 @@ class Fortnight extends FN_Base
 						$route[$index] = $match[$part];
 				}
 				$o = strrpos($route['controller'], "/");
-				$route['path'] = '/';
+				#$route['path'] = '/';
 				if ($o !== FALSE)
 				{
-					$route['path'] .= substr($route['controller'], 0, $o);
+					$route['path'] .= $path_prefix = substr($route['controller'], 0, $o);
 					$route['controller'] = substr($route['controller'], $o + 1);
 				}
+				
+				$possible_routes[] = $route;
 			}
 		}
 		
 		// Load request controller
+		pr($possible_routes);
 		
 		// Execute request
 		debug_out("request executed");

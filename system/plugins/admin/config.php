@@ -8,6 +8,6 @@ $plugin_config = array(
 	
 	'dependencies' => array('db','auth','validate'),
 	'requests' => array(
-		'web_path' => "/admin",
+		'web_path' => array("/admin" => "admin")
 	),
 );

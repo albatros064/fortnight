@@ -1,10 +1,9 @@
 <?php
 
 $routes_config = array(
-	"#^/$#"                      => array('path' => '', 'controller' => "home", 'method' => "index", 'arg' => NULL),
-	"#^/([^/]+?)$#"              => array('path' => '', 'controller' => 1,      'method' => "index", 'arg' => NULL),
-	"#^/(.+)/([[:^digit:]]+?)$#" => array('path' => '', 'controller' => 1,      'method' => 2,       'arg' => NULL),
-	"#^/(.+)/(.+?)/(.+?)$#"      => array('path' => '', 'controller' => 1,      'method' => 2,       'arg' => 3   ),
+	"#^/$#"                                       => array('path' => '/', 'controller' => "home", 'method' => "index"),
+	"#^/([[:^digit:]]+?)$#"                       => array('path' => '/', 'controller' => 1,      'method' => "index"),
+	"#^(/.+)/([[:^digit:]]+?)/([[:^digit:]]+?)$#" => array('path' => 1,   'controller' => 2,      'method' => 3      ),
 );
 
 ?>
