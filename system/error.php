@@ -11,25 +11,21 @@ error_reporting(E_ALL | E_STRICT);
 
 
 // Pretty print
-function pr($i)
-{
-	if (OUTPUT_DEBUG_MESSAGES)
-	{
+function pr($i) {
+	if (OUTPUT_DEBUG_MESSAGES) {
 		echo "<pre>";
 		print_r($i);
 		echo "</pre>";
 	}
 }
 
-function debug_out($i)
-{
+function debug_out($i) {
 	if (OUTPUT_DEBUG_MESSAGES)
 		echo $i . "<br />";
 }
 
 
-function get_trace_string($trace, $color)
-{
+function get_trace_string($trace, $color) {
 	$output = '' .
 		'<tr style="font-size:15px;background:'.$color.'">' .
 			'<td colspan="5">Stack Trace:</td>' .
@@ -39,8 +35,7 @@ function get_trace_string($trace, $color)
 		'</tr>';
 	
 	$i = 0;
-	foreach ($trace as $call)
-	{
+	foreach ($trace as $call) {
 		$i++;
 		$function = '';
 		if (isset($call['class']) )
@@ -48,10 +43,8 @@ function get_trace_string($trace, $color)
 		if (isset($call['type']) )
 			$function .= $call['type'];
 		$function .= $call['function']."(";
-		if (isset($call['args']) )
-		{
-			foreach ($call['args'] as $arg)
-			{
+		if (isset($call['args']) ) {
+			foreach ($call['args'] as $arg) {
 				if (is_string($arg) )
 					$arg = '"'.str_replace("\"", "\\\"", $arg) . '"';
 				$function .= $arg . ', ';
@@ -70,8 +63,7 @@ function get_trace_string($trace, $color)
 	return $output;
 }
 
-function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace)
-{
+function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace) {
 	$error_types = Array(
 		E_ERROR => 'Fatal Error',
 		E_WARNING => 'Warning',
@@ -88,11 +80,11 @@ function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace)
 		E_RECOVERABLE_ERROR => 'Catchable Fatal Error'
 	);
 	
-	if ($trace === FALSE)
-	{
+	if ($trace === FALSE) {
 		$color = "#a48f77";
 		$color_heading = "#ffaa33";
-	} else {
+	}
+	else {
 		$color = "#aa9999";
 		$color_heading = "#aa3333";
 	}
@@ -127,25 +119,21 @@ function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace)
 	return '';
 }
 
-function fortnight_error_handler($errno, $errstr, $errfile, $errline)
-{
+function fortnight_error_handler($errno, $errstr, $errfile, $errline) {
 	echo fortnight_generic_handler($errno, $errstr, $errfile, $errline, false);
 	return true;
 }
 
-function fortnight_exception_handler($e)
-{
+function fortnight_exception_handler($e) {
 	echo fortnight_generic_handler($e->getCode(), $e->getMessage(), $e->getFile(), $e->getLine(), $e->getTrace() );
 }
 
-function fortnight_fatal_handler($out = '')
-{
+function fortnight_fatal_handler($out = '') {
 	$error = error_get_last();
 	// Not all of these can be caught (E_PARSE, I'm lookin' at you), but we'll specify them anyway.
 	$catch = array(E_ERROR, E_CORE_ERROR, E_CORE_WARNING, E_PARSE, E_COMPILE_ERROR, E_COMPILE_WARNING);
 	$warn = array(E_CORE_WARNING, E_COMPILE_WARNING);
-	if ($error !== NULL && in_array($error['type'], $catch) )
-	{
+	if ($error !== NULL && in_array($error['type'], $catch) ) {
 		if (in_array($error['type'], $warn) )
 			$tr = FALSE;
 		else

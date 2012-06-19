@@ -5,11 +5,11 @@ define('OUTPUT_DEBUG_MESSAGES', TRUE);
 
 $global_config = array(
 	'path' => array(
-		'absolute' => "/wamp/www/fortnight",
-		'base' => "/fortnight",	
-		'system' => "/system",
-		'applications' => "/applications",
-		'system_plugins' => "/system/plugins",
+		'absolute' => "/home/npowell/public_html/fortnight/",
+		'base' => "~npowell/fortnight",	
+		'system' => "system",
+		'applications' => "applications",
+		'system_plugins' => "system/plugins",
 	),
 	
 	'vars' => array(

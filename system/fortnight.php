@@ -9,17 +9,13 @@ require_once "model.php";
 require_once "plugin.php";
 require_once "helper.php";
 
-class Fortnight extends FN_Base
-{
-	function __construct($global_config)
-	{
-		$this->config = array(
-			'global' => $global_config
-		);
+class Fortnight extends FN_Base {
+	function __construct() {
+		parent::__construct();
+		$this->config['routes'] = $this->_load_config_file('routes');
 	}
 	
-	function execute()
-	{
+	function execute() {
 		$input = array(
 			'all'  => array(),
 			'get'  => array(),
@@ -32,10 +28,8 @@ class Fortnight extends FN_Base
 		$request = "/".trim(str_replace($this->config['global']['path']['base'], "", $request[0]), "/");
 		
 		// Parse $_GET
-		if (isset($_GET) && !empty($_GET) )
-		{
-			foreach ($_GET as $name => $value)
-			{
+		if (isset($_GET) && !empty($_GET) ) {
+			foreach ($_GET as $name => $value) {
 				if (!isset($input['all'][$name]) )
 					$input['all'][$name] = $value;
 				if (!isset($input['get'][$name]) )
@@ -44,10 +38,8 @@ class Fortnight extends FN_Base
 			unset($_GET);
 		}
 		// Parse URI variables
-		if(preg_match_all('#([^/]+):([^/]+)#', $request, $match))
-		{
-			foreach($match[1] as $index => $name)
-			{
+		if(preg_match_all('#([^/]+):([^/]+)#', $request, $match)) {
+			foreach($match[1] as $index => $name) {
 				$value = $match[2][$index]; 
 				if (!isset($input['all' ][$name]) )
 					$input['all' ][$name] = $value;
@@ -57,10 +49,8 @@ class Fortnight extends FN_Base
 			$request = substr($request, 0, strrpos(substr($request, 0, strpos($request, ":") ), "/") );
 		}
 		// Parse $_POST
-		if (isset($_POST) && !empty($_POST) )
-		{
-			foreach ($_POST as $name => $value)
-			{
+		if (isset($_POST) && !empty($_POST) ) {
+			foreach ($_POST as $name => $value) {
 				if (!isset($input['all' ][$name]) )
 					$input['all' ][$name] = $value;
 				if (!isset($input['post'][$name]) )
@@ -68,7 +58,7 @@ class Fortnight extends FN_Base
 			}
 			unset($_POST);
 		}
-			
+
 		// Start up Plugin Manager
 		$this->plugin_manager = new FN_Plugin_Manager($this->config['global']);
 			
@@ -86,22 +76,18 @@ class Fortnight extends FN_Base
 		
 		// Match request to plugin-registered paths
 		$plugin_paths = $this->plugin_manager->get_web_paths();
-		foreach ($plugin_paths as $path => $details)
-		{
+		foreach ($plugin_paths as $path => $details) {
 			$path = "/" . trim($path, "/");
 			$pos = strpos($request, $path);
-			if ($pos !== FALSE && $pos == 0)
-			{
-				if (strlen($path) > $uri_prefix)
-				{
+			if ($pos !== FALSE && $pos == 0) {
+				if (strlen($path) > $uri_prefix) {
 					$uri_prefix = $path;
 					$path_prefix = $details['path'];
 				}
 			}
 		}
 		
-		if (empty($uri_prefix) )
-		{
+		if (empty($uri_prefix) ) {
 			// Load registered routes
 			
 		}
@@ -111,27 +97,23 @@ class Fortnight extends FN_Base
 		
 		if (!empty($uri_prefix) )
 			$request = "/" . trim(str_replace($uri_prefix, "", $request), "/");
-			
+		pr($input);		
 		pr($request);
 		
 		// Match request to route
-		include "config/routes.php";
-		
 		$possible_routes = array();
 		
-		foreach ($routes_config as $pattern => $route)
-		{
-			if (preg_match($pattern, $request, $match) )
-			{
-				foreach ($route as $index => $part)
-				{
+		foreach ($this->config['routes'] as $pattern => $route) {
+			pr($pattern);
+			if (preg_match($pattern, $request, $match) ) {
+				pr("match");
+				foreach ($route as $index => $part) {
 					if (is_integer($part) )
 						$route[$index] = $match[$part];
 				}
 				$o = strrpos($route['controller'], "/");
 				#$route['path'] = '/';
-				if ($o !== FALSE)
-				{
+				if ($o !== FALSE) {
 					$route['path'] .= $path_prefix = substr($route['controller'], 0, $o);
 					$route['controller'] = substr($route['controller'], $o + 1);
 				}
@@ -142,9 +124,11 @@ class Fortnight extends FN_Base
 		
 		// Load request controller
 		pr($possible_routes);
+
+		$db = new Db_Helper();
 		
 		// Execute request
-		debug_out("request executed");
+		pr("request executed");
 	}
 }
 

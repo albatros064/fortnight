@@ -1,7 +1,6 @@
 <?php
 
-class FN_Model extends FN_Base
-{
+class FN_Model extends FN_Base {
 }
 
 ?>

@@ -1,7 +1,6 @@
 <?php
 
-class FN_Controller extends FN_Base
-{
+class FN_Controller extends FN_Base {
 }
 
 ?>
