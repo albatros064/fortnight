@@ -35,7 +35,6 @@ class Fortnight extends FN_Base {
 				if (!isset($input['get'][$name]) )
 					$input['get'][$name] = $value;
 			}
-			unset($_GET);
 		}
 		// Parse URI variables
 		if(preg_match_all('#([^/]+):([^/]+)#', $request, $match)) {
@@ -56,26 +55,25 @@ class Fortnight extends FN_Base {
 				if (!isset($input['post'][$name]) )
 					$input['post'][$name] = $value;
 			}
-			unset($_POST);
 		}
 
 		// Start up Plugin Manager
-		$this->plugin_manager = new FN_Plugin_Manager($this->config['global']);
+		$plugin_manager = new FN_Plugin_Manager($this->config['global']);
 			
 		// Load admin plugins
-		$admin_plugins = $this->plugin_manager->get_plugins('system');
+		$admin_plugins = $plugin_manager->get_plugins('system');
 		
 		foreach ($admin_plugins as $admin_plugin)
-			$this->plugin_manager->load_plugin($admin_plugin);
+			$plugin_manager->load_plugin($admin_plugin);
 			
 		#pr($this->plugin_manager->loaded);
-		#pr($this->plugin_manager->assignments);
+		pr($plugin_manager->assignments);
 		
 		$uri_prefix = '';
 		$path_prefix = '';
 		
 		// Match request to plugin-registered paths
-		$plugin_paths = $this->plugin_manager->get_web_paths();
+		$plugin_paths = $plugin_manager->get_web_paths();
 		foreach ($plugin_paths as $path => $details) {
 			$path = "/" . trim($path, "/");
 			$pos = strpos($request, $path);
@@ -86,6 +84,8 @@ class Fortnight extends FN_Base {
 				}
 			}
 		}
+
+		$this->_set_plugin_manager($plugin_manager);
 		
 		if (empty($uri_prefix) ) {
 			// Load registered routes
@@ -125,7 +125,13 @@ class Fortnight extends FN_Base {
 		// Load request controller
 		pr($possible_routes);
 
-		$db = new Db_Helper();
+		#$db = new Db_Helper();
+		$this->load_helper("Db");
+		
+		$result = $this->Db->query("SELECT * FROM fn_user");
+		while ($res = $this->Db->get_row() ) {
+			pr($res);
+		}
 		
 		// Execute request
 		pr("request executed");

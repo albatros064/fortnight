@@ -2,9 +2,9 @@
 
 $db_config = array(
 	'host' => 'localhost',
-	'user' => '',
-	'password' => '',
-	'database' => '',
+	'user' => 'fortnight',
+	'password' => 'bwPQyMRzfG4G6VBb',
+	'database' => 'fortnight',
 );
 
 ?>

@@ -40,6 +40,33 @@ abstract class FN_Base {
 	}
 
 	public function load_helper($helper_name) {
+		if (isset(self::$_plugin_manager->assignments['member_var'][$helper_name]) ) {
+			$helper_data = self::$_plugin_manager->assignments['member_var'][$helper_name];
+
+			$class_name = ucfirst($helper_data['class']) . "_Helper";
+			$var_name = ucfirst($helper_name);
+
+			$new_class = NULL;
+
+			if (class_exists($class_name) ) {
+				if (isset($helper_data['singleton']) && $helper_data['singleton']) {
+					$new_class = $class_name::Instance();
+				}
+				else {
+					$new_class = new $class_name();
+				}
+				$this->$var_name = $new_class;
+			}
+
+			return $new_class;
+		}	
+	}
+	
+
+	public function _set_plugin_manager($plugin_manager) {
+		if (is_null(self::$_plugin_manager) ) {
+			self::$_plugin_manager = $plugin_manager;
+		}
 	}
 
 }

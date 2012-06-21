@@ -142,11 +142,16 @@ class FN_Plugin_Manager extends FN_Base {
 							
 						foreach ($request_group as $request => $request_target) {
 							// Register the assignment with an un-altered "class" name, and the plugin path
-							$this->assignments[$type][$request] = array(
+							$new_assignment = array(
 								'plugin' => $name,
 								'class' => $request_target,
 								'path' => $plugin['location']
 							);
+							if (isset($plugin['singleton']) && $plugin['singleton']) {
+								$new_assignment['singleton'] = true;
+							}
+							$this->assignments[$type][$request] = $new_assignment;
+
 							if (isset($path) ) {
 								include $path . $request_target . ".php";
 							}
