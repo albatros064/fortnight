@@ -44,6 +44,7 @@ class Db_Helper extends FN_Helper {
 		}
 
 		if ($return === NULL) {
+			$this->result = null;
 			return FALSE;
 		}
 		return $return;
@@ -52,6 +53,7 @@ class Db_Helper extends FN_Helper {
 	
 	public function query($query_str) {
 		$this->result = $this->connection->query($query_str);
+
 		if ($this->result === FALSE) {
 			return FALSE;
 		}
