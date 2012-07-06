@@ -3,7 +3,7 @@
 $db_config = array(
 	'host' => 'localhost',
 	'user' => 'fortnight',
-	'password' => 'bwPQyMRzfG4G6VBb',
+	'password' => 'a2LFtnQ8mrCAYteP',
 	'database' => 'fortnight',
 );
 

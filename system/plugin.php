@@ -42,7 +42,7 @@ class FN_Plugin_Manager extends FN_Base {
 			
 			$relative_path = str_replace($this->config['global']['path']['absolute'], "", $plugin_dir);
 			
-			debug_out("Scanning " . $relative_path . "...");
+			#debug_out("Scanning " . $relative_path . "...");
 			while ( ($file_name = readdir($handle) ) !== FALSE) {
 				if ($file_name == '.' || $file_name == '..') {
 					continue;
@@ -50,7 +50,7 @@ class FN_Plugin_Manager extends FN_Base {
 					
 				$plugin_config = _read_plugin_config($plugin_dir . "/" . $file_name);
 				if (is_null($plugin_config) ) {
-					debug_out("Invalid config for " . $plugin_dir . "/" . $file_name);
+					#debug_out("Invalid config for " . $plugin_dir . "/" . $file_name);
 				}
 				else {
 					$plugin_config['location'] = $relative_path . "/" . $file_name;
@@ -59,7 +59,7 @@ class FN_Plugin_Manager extends FN_Base {
 			}
 		}
 		else {
-			debug_out("Invalid plugin directory.");
+			#debug_out("Invalid plugin directory.");
 		}
 		
 		return $plugin_list;
@@ -88,7 +88,7 @@ class FN_Plugin_Manager extends FN_Base {
 	protected function _process_load_plugin_stack() {
 		// Run through each plugin on the stack and check if its dependencies are met (if any)
 		foreach ($this->load_stack as $name => $plugin) {
-			debug_out("* {$name}: Attempting to load...");
+			#debug_out("* {$name}: Attempting to load...");
 			
 			$plugin_location = $this->config['global']['path']['absolute'] . $plugin['location'];
 			
@@ -106,7 +106,7 @@ class FN_Plugin_Manager extends FN_Base {
 			
 			// All dependencies loaded?
 			if ($dependencies_satisfied) {
-				debug_out("+ {$name}: Dependencies satisfied...");
+				#debug_out("+ {$name}: Dependencies satisfied...");
 				// Assume requests are available, and required files are present
 				$requests_available = TRUE;
 				$files_present = TRUE;
@@ -130,7 +130,7 @@ class FN_Plugin_Manager extends FN_Base {
 				
 				// Are there no conflicts, and are all files actually there?
 				if ($requests_available && $files_present) {
-					debug_out("+ {$name}: Loading...");
+					#debug_out("+ {$name}: Loading...");
 					// Go ahead and officially load the plugin
 					$this->loaded[$name] = $plugin;
 					unset($this->load_stack[$name]);
@@ -168,11 +168,11 @@ class FN_Plugin_Manager extends FN_Base {
 					else {
 						$v = "Missing file";
 					}
-					debug_out("- {$name}: {$v}. Plugin not loaded...");
+					#debug_out("- {$name}: {$v}. Plugin not loaded...");
 				}
 			}
 			else {
-				debug_out("* {$name}: Unsatisfied dependencies. Plugin not loaded...");
+				#debug_out("* {$name}: Unsatisfied dependencies. Plugin not loaded...");
 			}
 		}
 		

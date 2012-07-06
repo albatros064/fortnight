@@ -40,20 +40,24 @@ class Fortnight extends FN_Base {
 		if(preg_match_all('#([^/]+):([^/]+)#', $request, $match)) {
 			foreach($match[1] as $index => $name) {
 				$value = $match[2][$index]; 
-				if (!isset($input['all' ][$name]) )
+				if (!isset($input['all' ][$name]) ) {
 					$input['all' ][$name] = $value;
-				if (!isset($input['vars'][$name]) )
+				}
+				if (!isset($input['vars'][$name]) ) {
 					$input['vars'][$name] = $value;
+				}
 			}
 			$request = substr($request, 0, strrpos(substr($request, 0, strpos($request, ":") ), "/") );
 		}
 		// Parse $_POST
 		if (isset($_POST) && !empty($_POST) ) {
 			foreach ($_POST as $name => $value) {
-				if (!isset($input['all' ][$name]) )
+				if (!isset($input['all' ][$name]) ) {
 					$input['all' ][$name] = $value;
-				if (!isset($input['post'][$name]) )
+				}
+				if (!isset($input['post'][$name]) ) {
 					$input['post'][$name] = $value;
+				}
 			}
 		}
 
@@ -63,12 +67,10 @@ class Fortnight extends FN_Base {
 		// Load admin plugins
 		$admin_plugins = $plugin_manager->get_plugins('system');
 		
-		foreach ($admin_plugins as $admin_plugin)
+		foreach ($admin_plugins as $admin_plugin) {
 			$plugin_manager->load_plugin($admin_plugin);
+		}
 			
-		#pr($this->plugin_manager->loaded);
-		pr($plugin_manager->assignments);
-		
 		$uri_prefix = '';
 		$path_prefix = '';
 		
@@ -92,49 +94,79 @@ class Fortnight extends FN_Base {
 			
 		}
 		
-		debug_out($uri_prefix);
-		debug_out($path_prefix);
-		
-		if (!empty($uri_prefix) )
+		if (!empty($uri_prefix) ) {
 			$request = "/" . trim(str_replace($uri_prefix, "", $request), "/");
-		pr($input);		
-		pr($request);
+		}
 		
 		// Match request to route
-		$possible_routes = array();
+		$page_route = null;
 		
 		foreach ($this->config['routes'] as $pattern => $route) {
-			pr($pattern);
 			if (preg_match($pattern, $request, $match) ) {
-				pr("match");
 				foreach ($route as $index => $part) {
-					if (is_integer($part) )
+					if (is_integer($part) ) {
 						$route[$index] = $match[$part];
+					}
 				}
+
 				$o = strrpos($route['controller'], "/");
-				#$route['path'] = '/';
+
 				if ($o !== FALSE) {
 					$route['path'] .= $path_prefix = substr($route['controller'], 0, $o);
 					$route['controller'] = substr($route['controller'], $o + 1);
 				}
+
+				$route['prefix'] = $path_prefix;
 				
-				$possible_routes[] = $route;
+				$page_route = $route;
+				break;
 			}
 		}
 		
 		// Load request controller
-		pr($possible_routes);
+		$controller = $this->load_controller($page_route);
 
-		#$db = new Db_Helper();
-		$this->load_helper("Db");
-		
-		$result = $this->Db->query("SELECT * FROM fn_user");
-		while ($res = $this->Db->get_row() ) {
-			pr($res);
-		}
-		
 		// Execute request
-		pr("request executed");
+		if (method_exists($controller, $page_route['method']) ) {
+			$method = $page_route['method'];
+
+			// Set the controller's $request
+			$controller->request = array(
+				'route' => $page_route,
+				'input' => $input
+			);
+			$controller->$method();
+		}
+		else {
+			echo "Do the ol' 404...";
+		}
+	}
+
+	protected function load_controller($request) {
+
+		// Check for controller class file
+		$controller_file = trim(strtolower($request['controller']), "/") . ".php";
+		$controller_path = $this->config['global']['path']['absolute'] . $request['prefix'] . "/controller" . $request['path'];
+
+		$controller_file = $controller_path . $controller_file;
+
+		if (file_exists($controller_file) ) {
+			ob_start();
+			include $controller_file;
+			ob_clean();
+		}
+		else {
+			throw new Exception($controller_file);
+			return NULL;
+		}
+
+		// Check for controller class and instanciate
+		$controller_class = ucfirst($request['controller']) . "_Controller";
+
+		if (class_exists($controller_class) ) {
+			return new $controller_class;
+		}
+		return NULL;
 	}
 }
 

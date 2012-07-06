@@ -35,7 +35,7 @@ abstract class FN_Base {
 		}
 		throw new Exception("Config file not found for {$config}. Aborting.");
 	}
-
+	
 	public function load_model($model_name) {
 	}
 
