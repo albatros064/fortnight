@@ -3,6 +3,17 @@
 class FN_Plugin extends FN_Base {
 }
 
+function _read_plugin_config($plugin_dir) {
+	ob_start();
+	include $plugin_dir . "/config.php";
+	ob_end_clean();
+
+	if (isset($plugin_config) ) {
+		return $plugin_config;
+	}
+	return NULL;
+}
+
 class FN_Plugin_Manager extends FN_Base {
 	function __construct($global_config) {
 		parent::__construct();
@@ -29,16 +40,6 @@ class FN_Plugin_Manager extends FN_Base {
 		$plugin_list = array();
 		
 		if ($handle = opendir($plugin_dir) ) {
-			// Wrap the included config file in a function to limit variable scope
-			function _read_plugin_config($plugin_dir) {
-				ob_start();
-				include $plugin_dir . "/config.php";
-				ob_end_clean();
-				
-				if (isset($plugin_config) )
-					return $plugin_config;
-				return NULL;
-			}
 			
 			$relative_path = str_replace($this->config['global']['path']['absolute'], "", $plugin_dir);
 			

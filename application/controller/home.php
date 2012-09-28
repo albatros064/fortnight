@@ -6,10 +6,7 @@ class Home_Controller extends FN_Controller {
 	}
 
 	public function index() {
-		$this->load_view("common/head", true);
-		pr($this->request);
-		pr($this->config);
-		$this->load_view("common/foot", true);
+		pr($this->template);
 	}
 }
 

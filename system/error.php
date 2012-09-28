@@ -20,8 +20,9 @@ function pr($i) {
 }
 
 function debug_out($i) {
-	if (OUTPUT_DEBUG_MESSAGES)
+	if (OUTPUT_DEBUG_MESSAGES) {
 		echo $i . "<br />";
+	}
 }
 
 
@@ -38,15 +39,18 @@ function get_trace_string($trace, $color) {
 	foreach ($trace as $call) {
 		$i++;
 		$function = '';
-		if (isset($call['class']) )
+		if (isset($call['class']) ) {
 			$function .= $call['class'];
-		if (isset($call['type']) )
+		}
+		if (isset($call['type']) ) {
 			$function .= $call['type'];
+		}
 		$function .= $call['function']."(";
 		if (isset($call['args']) ) {
 			foreach ($call['args'] as $arg) {
-				if (is_string($arg) )
+				if (is_string($arg) ) {
 					$arg = '"'.str_replace("\"", "\\\"", $arg) . '"';
+				}
 				$function .= $arg . ', ';
 			}
 		}
@@ -89,10 +93,12 @@ function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace) 
 		$color_heading = "#aa3333";
 	}
 	
-	if (isset($error_types[$errno]) )
+	if (isset($error_types[$errno]) ) {
 		$heading = $error_types[$errno];
-	else
+	}
+	else {
 		$heading = "Uncaught Exception";
+	}
 	
 	$errfile = "/".str_replace($_SERVER['DOCUMENT_ROOT'], "", str_replace("\\", "/", $errfile) );
 	
@@ -114,8 +120,9 @@ function fortnight_generic_handler($errno, $errstr, $errfile, $errline, $trace) 
 			( ($trace !== FALSE && is_array($trace) && !empty($trace) ) ? get_trace_string($trace, $color) : '') .
 		'</table>';
 	
-	if (OUTPUT_DEBUG_ERRORS)
+	if (OUTPUT_DEBUG_ERRORS) {
 		return $output;
+	}
 	return '';
 }
 
@@ -134,10 +141,12 @@ function fortnight_fatal_handler($out = '') {
 	$catch = array(E_ERROR, E_CORE_ERROR, E_CORE_WARNING, E_PARSE, E_COMPILE_ERROR, E_COMPILE_WARNING);
 	$warn = array(E_CORE_WARNING, E_COMPILE_WARNING);
 	if ($error !== NULL && in_array($error['type'], $catch) ) {
-		if (in_array($error['type'], $warn) )
+		if (in_array($error['type'], $warn) ) {
 			$tr = FALSE;
-		else
+		}
+		else {
 			$tr = TRUE;
+		}
 		$out .= fortnight_generic_handler($error['type'], $error['message'], $error['file'], $error['line'], $tr);
 	}
 	return $out;

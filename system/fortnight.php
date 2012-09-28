@@ -8,6 +8,7 @@ require_once "controller.php";
 require_once "model.php";
 require_once "plugin.php";
 require_once "helper.php";
+require_once "template.php";
 
 class Fortnight extends FN_Base {
 	function __construct() {
@@ -70,6 +71,11 @@ class Fortnight extends FN_Base {
 		foreach ($admin_plugins as $admin_plugin) {
 			$plugin_manager->load_plugin($admin_plugin);
 		}
+
+		$user_plugins = $plugin_manager->get_plugins('');
+		foreach ($user_plugins as $user_plugin) {
+			$plugin_manager->load_plugin($user_plugin);
+		}
 			
 		$uri_prefix = '';
 		$path_prefix = '';
@@ -88,10 +94,18 @@ class Fortnight extends FN_Base {
 		}
 
 		$this->_set_plugin_manager($plugin_manager);
+
+		$template_manager = NULL;
 		
 		if (empty($uri_prefix) ) {
-			// Load registered routes
-			
+			$template_manager = new FN_Template;
+			$templated_page = $template_manager->load($request);
+
+			if ($templated_page !== FALSE) {
+				$request = $templated_page['request'];
+			}
+
+			$path_prefix = 'application';
 		}
 		
 		if (!empty($uri_prefix) ) {
@@ -116,13 +130,14 @@ class Fortnight extends FN_Base {
 					$route['controller'] = substr($route['controller'], $o + 1);
 				}
 
-				$route['prefix'] = $path_prefix;
+				$route['file_prefix'] = $path_prefix;
+				$route['prefix'] = $uri_prefix;
 				
 				$page_route = $route;
 				break;
 			}
 		}
-		
+
 		// Load request controller
 		$controller = $this->load_controller($page_route);
 
@@ -132,9 +147,12 @@ class Fortnight extends FN_Base {
 
 			// Set the controller's $request
 			$controller->request = array(
-				'route' => $page_route,
-				'input' => $input
+				'route'  => $page_route,
+				'input'  => $input
 			);
+			if ($template_manager && $template_manager->loaded() ) {
+				$controller->template = $template_manager;
+			}
 			$controller->$method();
 		}
 		else {
@@ -146,7 +164,7 @@ class Fortnight extends FN_Base {
 
 		// Check for controller class file
 		$controller_file = trim(strtolower($request['controller']), "/") . ".php";
-		$controller_path = $this->config['global']['path']['absolute'] . $request['prefix'] . "/controller" . $request['path'];
+		$controller_path = $this->config['global']['path']['absolute'] . $request['file_prefix'] . "/controller" . $request['path'];
 
 		$controller_file = $controller_path . $controller_file;
 
@@ -156,7 +174,7 @@ class Fortnight extends FN_Base {
 			ob_clean();
 		}
 		else {
-			throw new Exception($controller_file);
+			#throw new Exception($controller_file);
 			return NULL;
 		}
 

@@ -8,3 +8,5 @@
 </head>
 
 <body>
+
+<a href="<?= $this->page_url('fun/place') ?>">Go Somewher</a>
