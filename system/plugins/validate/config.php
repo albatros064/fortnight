@@ -7,7 +7,7 @@ $plugin_config = array(
 	'type'  => "helper",
 	
 	'requests' => array(
-		'member_var' => array('Validate' => "validate")
+		'helper_var' => array('Validate' => "validate")
 	)
 );
 

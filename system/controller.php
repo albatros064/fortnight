@@ -1,6 +1,6 @@
 <?php
 
-class FN_Controller extends FN_Base {
+abstract class FN_Controller extends FN_Base {
 
 	public $request = null;
 

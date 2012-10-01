@@ -5,17 +5,18 @@ require_once "error.php";
 require_once "base.php";
 
 require_once "controller.php";
+require_once "orm.php";
 require_once "model.php";
 require_once "plugin.php";
 require_once "helper.php";
-require_once "template.php";
+
 
 class Fortnight extends FN_Base {
 	function __construct() {
 		parent::__construct();
 		$this->config['routes'] = $this->_load_config_file('routes');
 	}
-	
+
 	function execute() {
 		$input = array(
 			'all'  => array(),
@@ -31,10 +32,12 @@ class Fortnight extends FN_Base {
 		// Parse $_GET
 		if (isset($_GET) && !empty($_GET) ) {
 			foreach ($_GET as $name => $value) {
-				if (!isset($input['all'][$name]) )
+				if (!isset($input['all'][$name]) ) {
 					$input['all'][$name] = $value;
-				if (!isset($input['get'][$name]) )
+				}
+				if (!isset($input['get'][$name]) ) {
 					$input['get'][$name] = $value;
+				}
 			}
 		}
 		// Parse URI variables
@@ -76,7 +79,7 @@ class Fortnight extends FN_Base {
 		foreach ($user_plugins as $user_plugin) {
 			$plugin_manager->load_plugin($user_plugin);
 		}
-			
+
 		$uri_prefix = '';
 		$path_prefix = '';
 		
@@ -95,19 +98,24 @@ class Fortnight extends FN_Base {
 
 		$this->_set_plugin_manager($plugin_manager);
 
-		$template_manager = NULL;
-		
-		if (empty($uri_prefix) ) {
-			$template_manager = new FN_Template;
-			$templated_page = $template_manager->load($request);
 
-			if ($templated_page !== FALSE) {
-				$request = $templated_page['request'];
+		$template = FALSE;
+
+		// If we aren't being routed to a plugin, route to the application
+
+		if (empty($uri_prefix) ) {
+			// Load template, if one is registered for this request.
+			$template = $this->load_template($request);
+
+			if ($template !== FALSE) {
+				// Replace the request with the template path
+				$request = $template['request'];
 			}
 
+			// Route to the application, template or not
 			$path_prefix = 'application';
 		}
-		
+
 		if (!empty($uri_prefix) ) {
 			$request = "/" . trim(str_replace($uri_prefix, "", $request), "/");
 		}
@@ -138,6 +146,8 @@ class Fortnight extends FN_Base {
 			}
 		}
 
+		FN_Base::$_file_prefix = $page_route['file_prefix'];
+
 		// Load request controller
 		$controller = $this->load_controller($page_route);
 
@@ -150,8 +160,10 @@ class Fortnight extends FN_Base {
 				'route'  => $page_route,
 				'input'  => $input
 			);
-			if ($template_manager && $template_manager->loaded() ) {
-				$controller->template = $template_manager;
+
+			// Load the controller
+			if ($template !== FALSE) {
+				$controller->load_model("Template", $template['template']);
 			}
 			$controller->$method();
 		}
@@ -186,6 +198,20 @@ class Fortnight extends FN_Base {
 		}
 		return NULL;
 	}
+
+	protected function load_template($request) {
+		$this->load_helper("Db");
+
+		$num_rows = $this->Db->query("SELECT * FROM fn_template WHERE template_slug = '{$request}'");
+		if ($num_rows == 1) {
+			$row = $this->Db->get_row();
+			$template = "/" . trim($row['template_route'], "/");
+			return array('request' => $template, 'template' => $row['template_id']);
+		}
+
+		return FALSE;
+	}
+
 }
 
 ?>

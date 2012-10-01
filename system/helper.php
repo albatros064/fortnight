@@ -1,6 +1,6 @@
 <?php
 
-class FN_Helper extends FN_Base {
+abstract class FN_Helper extends FN_Base {
 }
 
 ?>

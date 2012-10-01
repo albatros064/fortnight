@@ -2,8 +2,9 @@
 
 abstract class FN_Base {
 
-	public static $_global_config = null;
+	public    static $_global_config  = null;
 	protected static $_plugin_manager = null;
+	protected static $_file_prefix    = null;
 
 	function __construct() {
 		if (is_null(self::$_global_config) ) {
@@ -36,12 +37,56 @@ abstract class FN_Base {
 		throw new Exception("Config file not found for {$config}. Aborting.");
 	}
 	
-	public function load_model($model_name) {
+	public function load_model($model_name, $preload = NULL) {
+		$singleton = false;
+
+		$var_name = ucfirst($model_name);
+		$class_name = $var_name . "_Model";
+
+		// Check for a global model
+		if (isset(self::$_plugin_manager->assignments['model_var'][$model_name]) ) {
+			$model_data = self::$_plugin_manager->assignments['model_var'][$model_name];
+
+			$class_name = ucfirst($model_data['class']) . "_Model";
+
+			$singleton = (isset($model_data['singleton']) && $model_data['singleton']);
+		}
+		else {
+			if (!class_exists($class_name) ) {
+				// Check for a local model
+				$path = rtrim(self::$_global_config['path']['absolute'], "/") . "/" . trim(self::$_file_prefix, "/") . "/model/" . $class_name . ".php";
+				if (file_exists($path) ) {
+					ob_start();
+					include $path;
+					ob_end_clean();
+				}
+			}
+		}
+
+		if (class_exists($class_name) ) {
+			if ($singleton) {
+				$new_class = $class_name::Instance($preload);
+			}
+			else {
+				$new_class = new $class_name;
+				if ($preload !== NULL && $preload > 0) {
+					$new_class->load($preload);
+				}
+			}
+
+			$this->$var_name = $new_class;
+
+			return $new_class;
+		}
+
+		throw new Exception("Could not find model.");
+
+		return NULL;
 	}
 
 	public function load_helper($helper_name) {
-		if (isset(self::$_plugin_manager->assignments['member_var'][$helper_name]) ) {
-			$helper_data = self::$_plugin_manager->assignments['member_var'][$helper_name];
+		if (isset(self::$_plugin_manager->assignments['helper_var'][$helper_name]) ) {
+			$helper_data = self::$_plugin_manager->assignments['helper_var'][$helper_name];
 
 			$class_name = ucfirst($helper_data['class']) . "_Helper";
 			$var_name = ucfirst($helper_name);
@@ -53,13 +98,14 @@ abstract class FN_Base {
 					$new_class = $class_name::Instance();
 				}
 				else {
-					$new_class = new $class_name();
+					$new_class = new $class_name;
 				}
 				$this->$var_name = $new_class;
 			}
 
 			return $new_class;
-		}	
+		}
+		return NULL;
 	}
 	
 
@@ -68,7 +114,6 @@ abstract class FN_Base {
 			self::$_plugin_manager = $plugin_manager;
 		}
 	}
-
 }
 
 ?>

@@ -8,7 +8,6 @@ $global_config = array(
 		'absolute' => "/home/npowell/public_html/fortnight/",
 		'base' => "~npowell/fortnight",	
 		'system' => "system",
-		'applications' => "applications",
 		'system_plugins' => "system/plugins",
 	),
 	

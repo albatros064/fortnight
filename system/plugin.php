@@ -22,8 +22,9 @@ class FN_Plugin_Manager extends FN_Base {
 		);
 		$this->loaded = array();
 		$this->assignments = array(
-			'web_path' => array(),
-			'member_var' => array()
+			'web_path'   => array(),
+			'helper_var' => array(),
+			'model_var'  => array()
 		);
 		$this->load_stack = array();
 	}
@@ -115,8 +116,12 @@ class FN_Plugin_Manager extends FN_Base {
 				// Check for request conflicts and missing base files
 				if (isset($plugin['requests']) ) {
 					foreach ($plugin['requests'] as $type => $request_group) {
-						if ($type == "member_var")
+						if ($type == "helper_var") {
 							$location = $plugin_location . "/helper/";
+						}
+						if ($type == "model_var") {
+							$location = $plugin_location . "/model/";
+						}
 						
 						foreach ($request_group as $request => $request_target) {
 							if (isset($location) && !file_exists($location . $request_target . ".php") ) {
@@ -137,8 +142,11 @@ class FN_Plugin_Manager extends FN_Base {
 					unset($this->load_stack[$name]);
 					// Assign requested settings
 					foreach ($plugin['requests'] as $type => $request_group) {
-						if ($type == 'member_var') {
+						if ($type == "helper_var") {
 							$path = $plugin['location'] . "/helper/";
+						}
+						if ($type == "model_var") {
+							$path = $plugin['location'] . "/model/";
 						}
 							
 						foreach ($request_group as $request => $request_target) {

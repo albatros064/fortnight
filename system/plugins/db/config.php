@@ -8,7 +8,7 @@ $plugin_config = array(
 	'singleton' =>  true,
 	
 	'requests' => array(
-		'member_var' => array('Db' => "db")
+		'helper_var' => array('Db' => "db")
 	)
 );
 

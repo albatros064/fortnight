@@ -8,7 +8,8 @@ $plugin_config = array(
 	
 	'dependencies' => array('db'),
 	'requests' => array(
-		'member_var' => array('Auth' => "auth")
+		'helper_var' => array('Auth' => "auth"),
+		'model_var' => array('User' => "user")
 	),
 );
 

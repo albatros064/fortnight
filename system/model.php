@@ -1,6 +1,6 @@
 <?php
 
-class FN_Model extends FN_Base {
+abstract class FN_Model extends FN_Orm {
 }
 
 ?>
