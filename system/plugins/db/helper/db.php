@@ -3,10 +3,10 @@
 class Db_Helper extends FN_Helper {
 
 	static private $_instance = null;
-	static private $_describe = array();
 	
 	private $connection = null;
 	private $result = null;
+	private $describe = array();
 
 	public static function &Instance() {
 		if (is_null(self::$_instance) ) {
@@ -18,14 +18,12 @@ class Db_Helper extends FN_Helper {
 	public function __construct() {
 		parent::__construct();
 
-		$this->config['db'] = $this->_load_config_file('db');
-		
 		if (is_null($this->connection) ) {
 			$this->connection = new mysqli(
-				$this->config['db']['host'],
-				$this->config['db']['user'],
-				$this->config['db']['password'],
-				$this->config['db']['database']
+				$this->config['global']['db']['host'],
+				$this->config['global']['db']['user'],
+				$this->config['global']['db']['password'],
+				$this->config['global']['db']['database']
 			);
 			if ($this->connection->connect_errno) {
 				throw new Exception("Could not connect to MySQL: ({$this->connection->connect_errno}) {$this->connection->connect_error}");
@@ -158,8 +156,8 @@ class Db_Helper extends FN_Helper {
 	 * @return mixed (array if table exists, false otherwise)
 	 */
 	public function table_columns($table_name) {
-		if (isset(self::$_describe[$table_name]) ) {
-			return self::$_describe[$table_name]['fields'];
+		if (isset($this->describe[$table_name]) ) {
+			return $this->describe[$table_name]['fields'];
 		}
 
 		if ($this->table_exists($table_name) ) {
@@ -179,7 +177,7 @@ class Db_Helper extends FN_Helper {
 				'fields' => $describe
 			);
 
-			self::$_describe[$table_name] = $describe;
+			$this->describe[$table_name] = $describe;
 
 			return $describe['fields'];
 		}
@@ -214,7 +212,7 @@ class Db_Helper extends FN_Helper {
 	public function primary_id($table_name) {
 		$this->table_columns($table_name);
 
-		return self::$_describe[$table_name]['primary_id'];
+		return $this->describe[$table_name]['primary_id'];
 	}
 
 	/**
@@ -224,10 +222,10 @@ class Db_Helper extends FN_Helper {
 	 * @return bool
 	 */
 	public function table_exists($table_name) {
-		if (isset(self::$_describe[$table_name]) ) {
+		if (isset($this->describe[$table_name]) ) {
 			return TRUE;
 		}
-		return ($this->query("SHOW TABLES WHERE `Tables_in_{$this->config['db']['database']}` = '{$table_name}';") === 1);
+		return ($this->query("SHOW TABLES WHERE `Tables_in_{$this->config['global']['db']['database']}` = '{$table_name}';") === 1);
 	}
 	protected function assert_table($table_name) {
 		if (!$this->table_exists($table_name) ) {
@@ -258,14 +256,22 @@ class Db_Helper extends FN_Helper {
 
 			$column_split = $this->_where_column_split($column, $column_operators);
 
-			$column   = $column_split['column'  ]; // TODO: db-escape this value
+			$column   = $column_split['column'  ];
 			$operator = $column_split['operator'];
 
 			if (isset($table_columns[$column]) ) {
 				$where_string .= " AND `{$table_name}`.`{$column}` ";
 
+				$value_is_null = false;
+
+				if ($value === NULL) {
+					$value_is_null = true;
+				}
+
+				$value = $this->escape($value);
+
 				if ($operator == '=') {
-					if ($value === NULL) {
+					if ($value_is_null) {
 						$where_string .= "IS NULL";
 					}
 					else {
@@ -273,7 +279,7 @@ class Db_Helper extends FN_Helper {
 					}
 				}
 				else if ($operator == '!') {
-					if ($value === NULL) {
+					if ($value_is_null) {
 						$where_string .= "IS NOT NULL";
 					}
 					else {

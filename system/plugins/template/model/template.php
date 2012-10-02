@@ -21,6 +21,10 @@ class Template_Model extends FN_Model {
 		$this->has_one('user');
 		$this->has_many('revision');
 	}
+
+	public function fragment($index = 0) {
+		
+	}
 }
 
 ?>

@@ -1,19 +1,5 @@
 <?php
 
-class FN_Plugin extends FN_Base {
-}
-
-function _read_plugin_config($plugin_dir) {
-	ob_start();
-	include $plugin_dir . "/config.php";
-	ob_end_clean();
-
-	if (isset($plugin_config) ) {
-		return $plugin_config;
-	}
-	return NULL;
-}
-
 class FN_Plugin_Manager extends FN_Base {
 	function __construct($global_config) {
 		parent::__construct();
@@ -39,7 +25,20 @@ class FN_Plugin_Manager extends FN_Base {
 		$plugin_dir = "/" . ltrim($plugin_dir, "/");
 		
 		$plugin_list = array();
-		
+
+		if (!function_exists("_read_plugin_config") ) {
+			function _read_plugin_config($plugin_dir) {
+				ob_start();
+				include $plugin_dir . "/config.php";
+				ob_end_clean();
+
+				if (isset($plugin_config) ) {
+					return $plugin_config;
+				}
+				return NULL;
+			}
+		}
+
 		if ($handle = opendir($plugin_dir) ) {
 			
 			$relative_path = str_replace($this->config['global']['path']['absolute'], "", $plugin_dir);
@@ -63,8 +62,15 @@ class FN_Plugin_Manager extends FN_Base {
 		else {
 			#debug_out("Invalid plugin directory.");
 		}
-		
+
 		return $plugin_list;
+	}
+
+	public function is_loaded($plugin_name) {
+		if (isset($this->loaded[$plugin_name]) ) {
+			return TRUE;
+		}
+		return FALSE;
 	}
 	
 	public function load_plugin($plugin_config) {

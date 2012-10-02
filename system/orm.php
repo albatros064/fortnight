@@ -125,8 +125,6 @@ abstract class FN_Orm extends FN_Base {
 		}
 
 		// Has one
-
-
 		if (isset($this->_has_one[$call_name]) ) {
 			$other_object = $this->load_model($call_name);
 			#$other_field  = "{$call_name}_id";
@@ -154,7 +152,6 @@ abstract class FN_Orm extends FN_Base {
 		}
 
 		throw new Exception("Invalid property.");
-		return NULL;
 	}
 
 	protected function has_one($link_name, $mapping_table = FALSE) {

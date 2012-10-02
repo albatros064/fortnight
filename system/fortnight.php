@@ -80,7 +80,7 @@ class Fortnight extends FN_Base {
 			$plugin_manager->load_plugin($user_plugin);
 		}
 
-		$uri_prefix = '';
+		$uri_prefix  = '';
 		$path_prefix = '';
 		
 		// Match request to plugin-registered paths
@@ -104,12 +104,15 @@ class Fortnight extends FN_Base {
 		// If we aren't being routed to a plugin, route to the application
 
 		if (empty($uri_prefix) ) {
-			// Load template, if one is registered for this request.
-			$template = $this->load_template($request);
 
-			if ($template !== FALSE) {
-				// Replace the request with the template path
-				$request = $template['request'];
+			if ($plugin_manager->is_loaded('template') ) {
+				// Load template, if one is registered for this request.
+				$template = $this->load_template($request);
+
+				if ($template !== FALSE) {
+					// Replace the request with the template path
+					$request = $template['request'];
+				}
 			}
 
 			// Route to the application, template or not
@@ -140,6 +143,13 @@ class Fortnight extends FN_Base {
 
 				$route['file_prefix'] = $path_prefix;
 				$route['prefix'] = $uri_prefix;
+
+				if ($plugin_manager->is_loaded('template') ) {
+					$route['method'] = ltrim($route['method'], "_");
+					if ($template !== FALSE) {
+						$route['method'] = "_t_" . $route['method'];
+					}
+				}
 				
 				$page_route = $route;
 				break;
@@ -162,13 +172,14 @@ class Fortnight extends FN_Base {
 			);
 
 			// Load the controller
-			if ($template !== FALSE) {
+			if ($plugin_manager->is_loaded('template') && $template !== FALSE) {
 				$controller->load_model("Template", $template['template']);
 			}
 			$controller->$method();
 		}
 		else {
-			echo "Do the ol' 404...";
+			throw new Exception("404");
+			pr("Do the ol' 404...");
 		}
 	}
 
