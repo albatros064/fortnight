@@ -346,7 +346,7 @@ class Db_Helper extends FN_Helper {
 			}
 		}
 
-		return trim(", ", $set);
+		return trim($set, ", ");
 	}
 }
 
