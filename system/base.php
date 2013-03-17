@@ -54,7 +54,7 @@ abstract class FN_Base {
 		else {
 			if (!class_exists($class_name) ) {
 				// Check for a local model
-				$path = rtrim(self::$_global_config['path']['absolute'], "/") . "/" . trim(self::$_file_prefix, "/") . "/model/" . $class_name . ".php";
+				$path = rtrim(self::$_global_config['path']['absolute'], "/") . "/" . trim(self::$_file_prefix, "/") . "/model/" . strtolower($model_name) . ".php";
 				if (file_exists($path) ) {
 					ob_start();
 					include $path;
