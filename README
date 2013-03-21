@@ -1,18 +1,11 @@
 Fortnight
-(C) 2012 Nathaniel Powell
+(C) 2013 Nathaniel Powell
 
 Description:
-Fortnight is an object-oriented PHP CMS. It is not a blog.
+Fortnight is an object-oriented PHP web framework.
 
 Features:
-* In-place editing of pre-defined regions.
-* Object-oriented design.
-* CMV plugin and template structure.
+* Object-oriented, CMV structure.
+* Object Relational Model for easy database object access and traversal.
+* Plugin capabilities for system expansion.
 * More goodies that haven't made it to this list.
-
-Planned Plugins:
-* Admin/management area
-* Database interface
-* Blog features
-* Music/video player
-* Shopping cart

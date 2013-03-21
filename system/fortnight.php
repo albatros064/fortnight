@@ -178,8 +178,29 @@ class Fortnight extends FN_Base {
 			$controller->$method();
 		}
 		else {
-			throw new Exception("404");
-			pr("Do the ol' 404...");
+			header("HTTP/1.0 404 Not Found");
+
+			$requested_page_route = $page_route;
+			$page_route['controller'] = "Error";
+			$page_route['method'    ] = "e404";
+			$page_route['path'      ] = "/";
+
+			$controller = $this->load_controller($page_route);
+			if (method_exists($controller, $page_route['method']) ) {
+				$method = $page_route['method'];
+
+				$page_route['original'] = $requested_page_route;
+				$controller->request = array(
+					'route' => $page_route,
+					'input' => $input
+				);
+
+				$controller->$method();
+			}
+			else {
+				pr($requested_page_route);
+				pr("The requested page could not be found, nor a suitable error page to tell you so.");
+			}
 		}
 	}
 
@@ -193,7 +214,7 @@ class Fortnight extends FN_Base {
 
 		if (file_exists($controller_file) ) {
 			ob_start();
-			include $controller_file;
+			include_once $controller_file;
 			ob_clean();
 		}
 		else {
@@ -202,7 +223,7 @@ class Fortnight extends FN_Base {
 		}
 
 		// Check for controller class and instanciate
-		$controller_class = ucfirst($request['controller']) . "_Controller";
+		$controller_class = "{$request['controller']}_Controller";
 
 		if (class_exists($controller_class) ) {
 			return new $controller_class;

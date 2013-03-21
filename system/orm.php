@@ -8,6 +8,7 @@ abstract class FN_Orm extends FN_Base {
 	protected $_has_many = array();
 
 	protected $_data     = NULL;
+	protected $_extern   = NULL;
 
 
 	public function __construct() {
@@ -37,7 +38,7 @@ abstract class FN_Orm extends FN_Base {
 
 		$object_id = intval($object_id);
 
-		if ($this->get(array($this->primary_id() => $object_id), true) !== FALSE) {
+		if ($this->get(array($this->primary_id() => $object_id), true) !== false) {
 			return $this;
 		}
 
@@ -65,8 +66,9 @@ abstract class FN_Orm extends FN_Base {
 		if ($count > 0) {
 			while ($next = $this->Db->get_row() ) {
 				if ($perform_load) {
-					$new_item = clone $this;
-					$new_item->load(FALSE, $next);
+					$clean_object = get_class($this);
+					$new_item = new $clean_object;
+					$new_item->load(false, $next);
 				}
 				else {
 					$new_item = $next;
@@ -124,31 +126,40 @@ abstract class FN_Orm extends FN_Base {
 			return $this->_data[$property_name];
 		}
 
+		// Access the cached externally-linked objects
+		if (isset($this->_extern[$call_name]) ) {
+			return $this->_extern[$call_name];
+		}
+
 		// Has one
 		if (isset($this->_has_one[$call_name]) ) {
 			$other_object = $this->load_model($call_name);
-			#$other_field  = "{$call_name}_id";
 			$other_field = $other_object->primary_id();
+
+			$mapping_table = $this->_has_one[$call_name];
+			if ($mapping_table) {
+			}
 
 			// Is the link in our table, or is it in the other table?
 			if (isset($this->_data[$other_field]) ) {
-				return $other_object->load($this->$other_field() );
+				$this->_extern[$call_name] = $other_object->load($this->$other_field() );
 			}
 			else {
-				return $other_object->get(array($this->primary_id() => $this->id() ) );
+				$this->_extern[$call_name] = $other_object->get(array($this->primary_id() => $this->id() ), true);
 			}
+			return $this->_extern[$call_name];
 		}
 
 		// Has many
 		if (isset($this->_has_many[$call_name]) ) {
-			$mapping_table = $this->_has_many[$call_name];
-
 			$other_object = $this->load_model($call_name);
 
-			return $other_object->get_all(array($this->primary_id() => $this->id() ), TRUE);
-			
+			$mapping_table = $this->_has_many[$call_name];
 			if ($mapping_table) {
 			}
+
+			$this->_extern[$call_name] = $other_object->get_all(array($this->primary_id() => $this->id() ), true);
+			return $this->_extern[$call_name];
 		}
 
 		throw new Exception("Invalid property.");
