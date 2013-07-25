@@ -13,7 +13,7 @@ error_reporting(E_ALL | E_STRICT);
 // Pretty print
 function pr($i) {
 	if (OUTPUT_DEBUG_MESSAGES) {
-		echo "<pre>";
+		echo '<pre style="font-size:12px;">';
 		print_r($i);
 		echo "</pre>";
 	}

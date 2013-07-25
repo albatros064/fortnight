@@ -4,6 +4,8 @@ require_once "error.php";
 
 require_once "base.php";
 
+require_once "exception.php";
+
 require_once "controller.php";
 require_once "orm.php";
 require_once "model.php";
@@ -27,7 +29,12 @@ class Fortnight extends FN_Base {
 		
 		// Strip query string (will be processed through $_GET later)
 		$request = explode("?", $_SERVER['REQUEST_URI']);
-		$request = "/".trim(str_replace($this->config['global']['path']['base'], "", $request[0]), "/");
+		$request = $request[0];
+		if (trim($this->config['global']['path']['base'], "/") ) {
+			$request = str_replace($this->config['global']['path']['base'], "", $request);
+		}
+		
+		$request = "/" . trim($request, "/");
 		
 		// Parse $_GET
 		if (isset($_GET) && !empty($_GET) ) {
@@ -70,12 +77,12 @@ class Fortnight extends FN_Base {
 			
 		// Load admin plugins
 		$admin_plugins = $plugin_manager->get_plugins('system');
-		
 		foreach ($admin_plugins as $admin_plugin) {
 			$plugin_manager->load_plugin($admin_plugin);
 		}
-
-		$user_plugins = $plugin_manager->get_plugins('');
+		
+		// Load user plugins
+		$user_plugins = $plugin_manager->get_plugins('application');
 		foreach ($user_plugins as $user_plugin) {
 			$plugin_manager->load_plugin($user_plugin);
 		}
@@ -157,50 +164,87 @@ class Fortnight extends FN_Base {
 		}
 
 		FN_Base::$_file_prefix = $page_route['file_prefix'];
+		
+		$page_routes = array(
+			'original' => $page_route,
+			'login' =>array(
+				'controller'  => "User",
+				'method'      => "login",
+				'path'        => "/",
+				'file_prefix' => $page_route['file_prefix'],
+				'prefix'      => $page_route['prefix'],
+				'original'    => $page_route
+			),
+			'e403' => array(
+				'controller'  => "Error",
+				'method'      => "e403",
+				'path'        => "/",
+				'file_prefix' => $page_route['file_prefix'],
+				'prefix'      => $page_route['prefix'],
+				'original'    => $page_route,
+				'header'      => "HTTP/1.0 403 Forbidden",
+				'message'     => "You are not permitted to access this resource."
+			),
+			'e404' => array(
+				'controller'  => "Error",
+				'method'      => "e404",
+				'path'        => "/",
+				'file_prefix' => $page_route['file_prefix'],
+				'prefix'      => $page_route['prefix'],
+				'original'    => $page_route,
+				'header'      => "HTTP/1.0 404 Not Found",
+				'message'     => "Could not find the requested file or page."
+			)
+		);
+		
+		$authorized = array(
+			'authenticated' => true,
+			'authorized'    => true
+		);
+		
+		try {
+			foreach ($page_routes as $type => $page_route) {
+				$controller = $this->load_controller($page_route);
 
-		// Load request controller
-		$controller = $this->load_controller($page_route);
+				if ($controller) {
+					$controller->request = array(
+						'route' => $page_route,
+						'input' => $input
+					);
+				}
 
-		// Execute request
-		if (method_exists($controller, $page_route['method']) ) {
-			$method = $page_route['method'];
-
-			// Set the controller's $request
-			$controller->request = array(
-				'route'  => $page_route,
-				'input'  => $input
-			);
-
-			// Load the controller
-			if ($plugin_manager->is_loaded('template') && $template !== FALSE) {
-				$controller->load_model("Template", $template['template']);
+				if ($type == 'original') {
+					if ($controller) {
+						$authorized = $this->authorized($controller, $page_route['method']);
+						if (!$authorized['authorized']) {
+							continue;
+						}
+					}
+				}
+				else if ($type == 'login') {
+					if ($authorized['authenticated']) {
+						continue;
+					}
+				}
+				else if ($type == 'e403') {
+					if ($authorized['authorized']) {
+						continue;
+					}
+				}
+				
+				if (method_exists($controller, $page_route['method']) ) {
+					$method = $page_route['method'];
+				
+					$controller->$method();
+					die();
+				}
+				else if (isset($page_route['header']) ) {
+					throw new PageRoutingException($page_route);
+				}
 			}
-			$controller->$method();
 		}
-		else {
-			header("HTTP/1.0 404 Not Found");
-
-			$requested_page_route = $page_route;
-			$page_route['controller'] = "Error";
-			$page_route['method'    ] = "e404";
-			$page_route['path'      ] = "/";
-
-			$controller = $this->load_controller($page_route);
-			if (method_exists($controller, $page_route['method']) ) {
-				$method = $page_route['method'];
-
-				$page_route['original'] = $requested_page_route;
-				$controller->request = array(
-					'route' => $page_route,
-					'input' => $input
-				);
-
-				$controller->$method();
-			}
-			else {
-				pr($requested_page_route);
-				pr("The requested page could not be found, nor a suitable error page to tell you so.");
-			}
+		catch (PageRoutingException $e) {
+			$e->render();
 		}
 	}
 
@@ -243,7 +287,40 @@ class Fortnight extends FN_Base {
 
 		return FALSE;
 	}
-
+	
+	protected function authorized($controller, $method) {
+		// Check if we need any authorization for this page
+		$access_control = $controller->access_restrictions;
+		
+		$authorized = array(
+			'authenticated' => true,
+			'authorized' => true
+		);
+		
+		$user_privilege_required = 0;
+		
+		if ($access_control) {
+			if (is_array($access_control) ) {
+			}
+			else {
+				$user_privilege_required = $access_control;
+			}
+		}
+		
+		if ($user_privilege_required > 0) {
+			$controller->load_helper('Auth');
+			$current_privilege = $controller->Auth->current_privilege();
+			
+			if (!$current_privilege) {
+				$authorized['authenticated'] = false;
+			}
+			if ($controller->Auth->current_privilege() < $user_privilege_required) {
+				$authorized['authorized'] = false;
+			}
+		}
+		
+		return $authorized;
+	}
 }
 
 ?>

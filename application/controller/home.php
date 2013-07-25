@@ -6,7 +6,6 @@ class Home_Controller extends FN_Controller {
 	}
 
 	public function index() {
-		pr($this->request);
 	}
 }
 

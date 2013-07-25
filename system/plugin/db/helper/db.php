@@ -7,6 +7,8 @@ class Db_Helper extends FN_Helper {
 	private $connection = null;
 	private $result = null;
 	private $describe = array();
+	
+	private $query_count = 0;
 
 	public static function &Instance() {
 		if (is_null(self::$_instance) ) {
@@ -37,8 +39,8 @@ class Db_Helper extends FN_Helper {
 	/**
 	 * Fetch the next result from the last query.
 	 *
-	 * @param bool $fetch_array (whether to fetch as an associative array or as a mysqli_result object)
-	 * @param mixed (array, mysqli_result Object, FALSE if no more results or no query.)
+	 * @param bool $fetch_array (whether to fetch as an associative array or as an object)
+	 * @return mixed (array, stdObject, FALSE if no more results or no query.)
 	 */
 	public function get_row($fetch_array = TRUE) {
 		if (is_null($this->result) ) {
@@ -53,10 +55,43 @@ class Db_Helper extends FN_Helper {
 		}
 
 		if ($return === NULL) {
-			$this->result = null;
+			$this->free();
 			return FALSE;
 		}
 		return $return;
+	}
+
+	/**
+	 * Fetch an array containing all the results from the current query
+	 *
+	 * @param bool $fetch_array (whether to fetch as an associative array or as an object)
+	 * @return mxied (array, stdObject)
+	 */
+	public function get_rows($fetch_array = TRUE) {
+		if (is_null($this->result) ) {
+			return array();
+		}
+
+		$return = array();
+		while ($row = $this->get_row(!!$fetch_array) ) {
+			$return[] = $row;
+		}
+
+		return $return;
+	}
+
+	/**
+	 * Free the current result set
+	 */
+	public function free() {
+		if (is_null($this->result) ) {
+			return;
+		}
+		
+		if (is_object($this->result) ) {
+			$this->result->free();
+		}
+		$this->result = null;
 	}
 
 	/**
@@ -66,6 +101,11 @@ class Db_Helper extends FN_Helper {
 	 * @return mixed (int number of rows returned, or bool if no rows can be returned from the query)
 	 */
 	public function query($query_str) {
+		// Clean up the last result
+		$this->free();
+		
+		$this->query_count++;
+		
 		$this->result = $this->connection->query($query_str);
 
 		if ($this->result === FALSE) {
@@ -311,20 +351,13 @@ class Db_Helper extends FN_Helper {
 	 * @return array
 	 */
 	protected function _where_column_split($column_string, $column_operators) {
-
-		$last_one = substr($column_string, -1);
-		$last_two = substr($column_string, -2);
+		$column_string = explode(" ", trim($column_string) );
 
 		$operator = '=';
-		$column = $column_string;
-
-		if ($last_two !== FALSE && in_array($last_two, $column_operators) ) {
-			$operator = $last_two;
-			$column   = trim(substr($column, 0, -2) );
-		}
-		else if ($last_one !== FALSE && in_array($last_one, $column_operators) ) {
-			$operator = $last_one;
-			$column   = trim(substr($column, 0, -1) );
+		$column = $column_string[0];
+		
+		if (count($column_string) > 1 && in_array($column_string[1], $column_operators) ) {
+			$operator = $column_string[1];
 		}
 
 		return array('column' => $column, 'operator' => $operator);
@@ -347,6 +380,10 @@ class Db_Helper extends FN_Helper {
 		}
 
 		return trim($set, ", ");
+	}
+	
+	public function query_count() {
+		return $this->query_count;
 	}
 }
 
